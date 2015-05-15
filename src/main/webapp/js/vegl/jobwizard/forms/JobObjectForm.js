@@ -217,6 +217,7 @@ Ext.define('vegl.jobwizard.forms.JobObjectForm', {
                 typeAhead: true,
                 forceSelection: true,
                 store : this.imageStore,
+                hidden : true,
                 listConfig : {
                     loadingText: 'Getting tools...',
                     emptyText: 'No matching toolboxes found. Select a different compute location.'
@@ -281,6 +282,10 @@ Ext.define('vegl.jobwizard.forms.JobObjectForm', {
             params : {
                 computeServiceId : computeServiceId,
                 jobId: this.wizardState.jobId
+            },
+            scope: jobObjectFrm,
+            callback: function(records, operation, success) {
+                jobObjectFrm.selectToolboxImage();
             }
         });
 
@@ -294,6 +299,32 @@ Ext.define('vegl.jobwizard.forms.JobObjectForm', {
                 jobObjectFrm.preselectVmType();
             }
         });
+    },
+
+    /*
+     * Select a toolbox image from those reported by the solutions
+     * centre. In the absence of any other information, if there are
+     * multiple valid images, pick the first one.
+     *
+     * TODO: Be smarter about multiple toolbox images
+     *
+     * If there are multiple images, it should be because there are
+     * different versions of the toolbox on the current provider. The
+     * solution centre needs to supply enough information in that case
+     * to make a decision between them. Either only report the
+     * "current" one unless requested otherwise, or supply information
+     * about the different versions.
+     */
+    selectToolboxImage: function() {
+        var jobObjectFrm = this;
+        var imageStore = this.imageStore;
+        var frm = jobObjectFrm.getForm();
+
+        // Select the first image in the list.
+        var computeVmId = imageStore.getAt(0);
+        if (!Ext.isEmpty(computeVmId)) {
+            frm.setValues({computeVmId: computeVmId});
+        }
     },
 
     preselectVmType: function() {
